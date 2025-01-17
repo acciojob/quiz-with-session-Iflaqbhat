@@ -1,7 +1,3 @@
-//your JS code here.
-
-// Do not change code below this line
-// This code will just display the questions to the screen
 const questions = [
   {
     question: "What is the capital of France?",
@@ -30,45 +26,45 @@ const questions = [
   },
 ];
 
-// Load saved progress from session storage
-const savedProgress = JSON.parse(sessionStorage.getItem("progress")) || {};
+// Initialize userAnswers to track selections
+let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
 
-// Display questions
-const questionsContainer = document.getElementById("questions");
-
-questions.forEach((q, index) => {
-  const questionDiv = document.createElement("div");
-  questionDiv.className = "question";
-  questionDiv.innerHTML = `<p>${index + 1}. ${q.question}</p>`;
-  
-  q.choices.forEach((choice) => {
-    const optionId = `q${index}-${choice}`;
-    const checked = savedProgress[index] === choice ? "checked" : "";
-    questionDiv.innerHTML += `
-      <label>
-        <input type="radio" name="q${index}" value="${choice}" ${checked} />
-        ${choice}
-      </label>
-    `;
+// Render questions
+function renderQuestions() {
+  const questionsContainer = document.getElementById("questions");
+  questionsContainer.innerHTML = ""; // Clear existing questions if any
+  questions.forEach((q, index) => {
+    const questionDiv = document.createElement("div");
+    questionDiv.className = "question";
+    questionDiv.innerHTML = `<p>${index + 1}. ${q.question}</p>`;
+    q.choices.forEach((choice) => {
+      const optionId = `q${index}-${choice}`;
+      const checked = userAnswers[index] === choice ? "checked" : "";
+      questionDiv.innerHTML += `
+        <label>
+          <input type="radio" name="q${index}" value="${choice}" ${checked} />
+          ${choice}
+        </label>
+      `;
+    });
+    questionsContainer.appendChild(questionDiv);
   });
 
-  questionsContainer.appendChild(questionDiv);
-});
-
-// Save progress to session storage on selection
-document.querySelectorAll("input[type='radio']").forEach((input) => {
-  input.addEventListener("change", (event) => {
-    const [questionIndex] = event.target.name.match(/\d+/);
-    savedProgress[questionIndex] = event.target.value;
-    sessionStorage.setItem("progress", JSON.stringify(savedProgress));
+  // Add event listeners for input changes
+  document.querySelectorAll("input[type='radio']").forEach((input) => {
+    input.addEventListener("change", (event) => {
+      const [questionIndex] = event.target.name.match(/\d+/);
+      userAnswers[questionIndex] = event.target.value;
+      sessionStorage.setItem("progress", JSON.stringify(userAnswers));
+    });
   });
-});
+}
 
-// Handle submission
+// Submit quiz
 document.getElementById("submit").addEventListener("click", () => {
   let score = 0;
   questions.forEach((q, index) => {
-    if (savedProgress[index] === q.answer) {
+    if (userAnswers[index] === q.answer) {
       score++;
     }
   });
@@ -81,28 +77,7 @@ document.getElementById("submit").addEventListener("click", () => {
   localStorage.setItem("score", score);
 });
 
-
-// Display the quiz questions and choices
-function renderQuestions() {
-  for (let i = 0; i < questions.length; i++) {
-    const question = questions[i];
-    const questionElement = document.createElement("div");
-    const questionText = document.createTextNode(question[0]);
-    questionElement.appendChild(questionText);
-    for (let j = 0; j < question.choices.length; j++) {
-      const choice = question.choices[j];
-      const choiceElement = document.createElement("input");
-      choiceElement.setAttribute("type", "radio");
-      choiceElement.setAttribute("name", `question-${i}`);
-      choiceElement.setAttribute("value", choice);
-      if (userAnswers[i] === choice) {
-        choiceElement.setAttribute("checked", true);
-      }
-      const choiceText = document.createTextNode(choice);
-      questionElement.appendChild(choiceElement);
-      questionElement.appendChild(choiceText);
-    }
-    questionsElement.appendChild(questionElement);
-  }
-}
-renderQuestions();
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", () => {
+  renderQuestions();
+});
