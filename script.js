@@ -1,81 +1,83 @@
-// Questions data
 const questions = [
-  { question: "What is the capital of France?", choices: ["Paris", "London", "Berlin", "Madrid"] },
-  { question: "What is 2 + 2?", choices: ["3", "4", "5", "6"] },
-  { question: "What is the largest planet in the solar system?", choices: ["Earth", "Mars", "Jupiter", "Venus"] },
-  { question: "What is the boiling point of water?", choices: ["90°C", "100°C", "120°C", "80°C"] },
-  { question: "Who wrote 'Hamlet'?", choices: ["Shakespeare", "Dickens", "Hemingway", "Tolkien"] }
+  {
+    question: "What is the capital of France?",
+    choices: ["Paris", "London", "Berlin", "Madrid"],
+    answer: "Paris",
+  },
+  {
+    question: "What is the highest mountain in the world?",
+    choices: ["Everest", "Kilimanjaro", "Denali", "Matterhorn"],
+    answer: "Everest",
+  },
+  {
+    question: "What is the largest country by area?",
+    choices: ["Russia", "China", "Canada", "United States"],
+    answer: "Russia",
+  },
+  {
+    question: "Which is the largest planet in our solar system?",
+    choices: ["Earth", "Jupiter", "Mars"],
+    answer: "Jupiter",
+  },
+  {
+    question: "What is the capital of Canada?",
+    choices: ["Toronto", "Montreal", "Vancouver", "Ottawa"],
+    answer: "Ottawa",
+  },
 ];
 
-// Initialize userAnswers from sessionStorage or set it to an empty array
-let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || [];
+// Initialize userAnswers to track selections
+let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
 
-// Function to render questions
+// Render questions
 function renderQuestions() {
-  const questionContainer = document.getElementById("questions");
-  questionContainer.innerHTML = ""; // Clear the container
-
-  questions.forEach((questionObj, index) => {
-    const questionDiv = document.createElement("div"); // Create a div for each question
-
-    // Create and append question text
-    const questionText = document.createElement("p");
-    questionText.textContent = `${index + 1}. ${questionObj.question}`;
-    questionDiv.appendChild(questionText);
-
-    // Create radio buttons for each choice
-    questionObj.choices.forEach((choice) => {
-      const radioInput = document.createElement("input");
-      radioInput.type = "radio";
-      radioInput.name = `question-${index}`; // Group by question index
-      radioInput.value = choice;
-
-      // Set "checked" if the user's saved answer matches this choice
-      if (userAnswers[index] === choice) {
-        radioInput.checked = true;
-      }
-
-      // Add a change event listener to save the user's selection
-      radioInput.addEventListener("change", () => {
-        userAnswers[index] = choice; // Update the user's answer
-        sessionStorage.setItem("progress", JSON.stringify(userAnswers)); // Save to sessionStorage
-      });
-
-      // Create a label for the radio input
-      const label = document.createElement("label");
-      label.textContent = choice;
-
-      // Append the input and label to the question div
-      questionDiv.appendChild(radioInput);
-      questionDiv.appendChild(label);
+  const questionsContainer = document.getElementById("questions");
+  questionsContainer.innerHTML = ""; // Clear existing questions if any
+  questions.forEach((q, index) => {
+    const questionDiv = document.createElement("div");
+    questionDiv.className = "question";
+    questionDiv.innerHTML = `<p>${index + 1}. ${q.question}</p>`;
+    q.choices.forEach((choice) => {
+      const optionId = `q${index}-${choice}`;
+      const checked = userAnswers[index] === choice ? "checked" : "";
+      questionDiv.innerHTML += `
+        <label>
+          <input type="radio" name="q${index}" value="${choice}" ${checked} />
+          ${choice}
+        </label>
+      `;
     });
+    questionsContainer.appendChild(questionDiv);
+  });
 
-    // Append the question div to the container
-    questionContainer.appendChild(questionDiv);
+  // Add event listeners for input changes
+  document.querySelectorAll("input[type='radio']").forEach((input) => {
+    input.addEventListener("change", (event) => {
+      const [questionIndex] = event.target.name.match(/\d+/);
+      userAnswers[questionIndex] = event.target.value;
+      sessionStorage.setItem("progress", JSON.stringify(userAnswers));
+    });
   });
 }
 
-// Function to calculate and display the score
-function calculateScore() {
-  let score = 0; // Initialize score
-
-  questions.forEach((questionObj, index) => {
-    if (userAnswers[index] === questionObj.choices[0]) {
-      // Assume the correct answer is always the first choice
+// Submit quiz
+document.getElementById("submit").addEventListener("click", () => {
+  let score = 0;
+  questions.forEach((q, index) => {
+    if (userAnswers[index] === q.answer) {
       score++;
     }
   });
 
-  // Update the score display
-  const scoreDiv = document.getElementById("score");
-  scoreDiv.textContent = `Your score is ${score} out of ${questions.length}.`;
+  // Display the score
+  const scoreContainer = document.getElementById("score");
+  scoreContainer.textContent = `Your score is ${score} out of 5.`;
 
-  // Save the score to localStorage for Cypress test validation
-  localStorage.setItem("score", score.toString());
-}
+  // Save the score in local storage
+  localStorage.setItem("score", score);
+});
 
-// Render the questions on page load
-renderQuestions();
-
-// Add an event listener for the "Submit" button
-document.getElementById("submit").addEventListener("click", calculateScore);
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", () => {
+  renderQuestions();
+});
