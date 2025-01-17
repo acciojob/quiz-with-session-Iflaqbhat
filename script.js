@@ -26,19 +26,16 @@ const questions = [
   },
 ];
 
-// Initialize userAnswers to track selections
 let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
 
-// Render questions
 function renderQuestions() {
   const questionsContainer = document.getElementById("questions");
-  questionsContainer.innerHTML = ""; // Clear existing questions if any
+  questionsContainer.innerHTML = "";
   questions.forEach((q, index) => {
     const questionDiv = document.createElement("div");
     questionDiv.className = "question";
-    questionDiv.innerHTML = `<p>${index + 1}. ${q.question}</p>`;
+    questionDiv.innerHTML = `<p>${q.question}</p>`;
     q.choices.forEach((choice) => {
-      const optionId = `q${index}-${choice}`;
       const checked = userAnswers[index] === choice ? "checked" : "";
       questionDiv.innerHTML += `
         <label>
@@ -50,7 +47,6 @@ function renderQuestions() {
     questionsContainer.appendChild(questionDiv);
   });
 
-  // Add event listeners for input changes
   document.querySelectorAll("input[type='radio']").forEach((input) => {
     input.addEventListener("change", (event) => {
       const [questionIndex] = event.target.name.match(/\d+/);
@@ -60,7 +56,6 @@ function renderQuestions() {
   });
 }
 
-// Submit quiz
 document.getElementById("submit").addEventListener("click", () => {
   let score = 0;
   questions.forEach((q, index) => {
@@ -69,15 +64,13 @@ document.getElementById("submit").addEventListener("click", () => {
     }
   });
 
-  // Display the score
   const scoreContainer = document.getElementById("score");
   scoreContainer.textContent = `Your score is ${score} out of 5.`;
-
-  // Save the score in local storage
   localStorage.setItem("score", score);
 });
 
-// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
+  userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
+  document.getElementById("score").textContent = "";
   renderQuestions();
 });
